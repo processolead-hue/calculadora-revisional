@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora Revisional de Juros Abusivos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f3ee; --panel:#ffffff; --ink:#1c2230; --muted:#5d6577; --line:#e2ddd2;
+  --navy:#1f3354; --gold:#a6782c; --ok:#2f7a4f; --bad:#b23b2e; --warn:#a46a00;
+  --soft:#f0ece3;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
+header{background:var(--navy);color:#fff;padding:22px 28px}
+header h1{margin:0;font-size:20px;font-weight:600;letter-spacing:.2px}
+header p{margin:4px 0 0;color:#c9d2e3;font-size:13px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px;display:grid;grid-template-columns:380px 1fr;gap:20px}
+@media(max-width:960px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);margin:0 0 12px;font-weight:600}
+label{display:block;font-size:12.5px;color:var(--muted);margin:10px 0 4px}
+input,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font:inherit;background:#fff;color:var(--ink)}
+input:focus,select:focus{outline:2px solid #c9a15a55;border-color:var(--gold)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:11.5px;color:var(--muted);margin-top:3px}
+.hint a{color:var(--navy)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.kpi .l{font-size:12px;color:var(--muted)}
+.kpi .v{font-size:21px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:11.5px;color:var(--muted);margin-top:2px}
+.kpi.hl{border-color:var(--gold);background:#fffaf0}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600}
+.b-bad{background:#fbe7e4;color:var(--bad)} .b-ok{background:#e3f2e8;color:var(--ok)} .b-warn{background:#fdf1d8;color:var(--warn)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:12.5px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{position:sticky;top:0;background:var(--soft);font-weight:600;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.4px}
+td:first-child,th:first-child{text-align:center}
+tr.paid td{background:#fcfbf8}
+tr.dobro td:nth-child(8){color:var(--bad);font-weight:600}
+.tablebox{max-height:460px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.cmp{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;font-size:13px}
+.cmp div{padding:7px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.cmp .h{font-weight:600;color:var(--muted);font-size:11.5px;text-transform:uppercase;background:var(--soft)}
+.cmp .n{text-align:right}
+.alerts p{margin:6px 0;padding:8px 10px;border-radius:6px;font-size:13px}
+.a-bad{background:#fbe7e4;color:#7a2219}.a-ok{background:#e3f2e8;color:#1e5235}.a-warn{background:#fdf1d8;color:#6c4700}.a-info{background:#e8edf6;color:#1f3354}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button{font:inherit;font-weight:500;padding:8px 14px;border-radius:6px;border:1px solid var(--navy);background:var(--navy);color:#fff;cursor:pointer}
+button.sec{background:#fff;color:var(--navy)}
+button:hover{opacity:.9}
+textarea{width:100%;min-height:300px;font-family:"IBM Plex Mono",monospace;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:10px;background:#fcfbf8;color:var(--ink)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:#fff;padding:10px 16px;border-radius:8px;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.on{opacity:1}
+.tabs{display:flex;gap:4px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+.tabs button{background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;border-radius:0;padding:8px 12px}
+.tabs button.on{color:var(--navy);border-bottom-color:var(--gold);font-weight:600}
+.pane{display:none}.pane.on{display:block}
+details summary{cursor:pointer;color:var(--navy);font-weight:500;font-size:13px}
+footer{max-width:1280px;margin:0 auto;padding:0 20px 30px;color:var(--muted);font-size:11.5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Calculadora — Ação Revisional de Juros Abusivos</h1>
+  <p>Taxa real implícita × taxa média BACEN · recálculo Price ou Gauss · expurgo de tarifas · indébito simples/em dobro · valor incontroverso (art. 330, §2º, CPC) · valor da causa</p>
+</header>
+
+<div class="wrap">
+<!-- ===== ENTRADAS ===== -->
+<aside>
+  <div class="card">
+    <h2>1. Contrato</h2>
+    <label>Valor total financiado (R$) — incluindo tarifas/seguros financiados</label>
+    <input id="pv" type="number" step="0.01" value="50000">
+    <div class="row2">
+      <div><label>Nº de parcelas</label><input id="n" type="number" step="1" value="48"></div>
+      <div><label>Valor da parcela (R$)</label><input id="pmt" type="number" step="0.01" value="1850"></div>
+    </div>
+    <div class="row2">
+      <div><label>Taxa mensal informada (%)</label><input id="tm_inf" type="number" step="0.0001" placeholder="opcional"></div>
+      <div><label>Taxa anual informada (%)</label><input id="ta_inf" type="number" step="0.0001" placeholder="opcional"></div>
+    </div>
+    <div class="hint">Taxas constantes do contrato. Servem para comparar com a taxa real (embutida na parcela) e checar capitalização pactuada (Súm. 541/STJ).</div>
+    <div class="row2">
+      <div><label>Data do contrato</label><input id="dtc" type="date" value="2024-01-10"></div>
+      <div><label>Vencimento 1ª parcela</label><input id="dt1" type="date" value="2024-02-10"></div>
+    </div>
+    <label>Parcelas já pagas</label>
+    <input id="k" type="number" step="1" value="12">
+  </div>
+
+  <div class="card">
+    <h2>2. Parâmetro de mercado</h2>
+    <div class="row2">
+      <div><label>Taxa média BACEN — mensal (%)</label><input id="tmm" type="number" step="0.0001" value="1.80"></div>
+      <div><label>Taxa média BACEN — anual (%)</label><input id="tma" type="number" step="0.0001"></div>
+    </div>
+    <div class="hint">Use a série da <b>mesma modalidade</b> (ex.: aquisição de veículos PF, crédito pessoal não consignado) no <b>mês da contratação</b>. Consulte em <a href="https://www.bcb.gov.br/estatisticas/reporttxjuros" target="_blank" rel="noopener">BCB — Taxas de juros por modalidade</a> ou no <a href="https://www3.bcb.gov.br/sgspub" target="_blank" rel="noopener">SGS/BCB</a>. Mensal e anual se convertem automaticamente.</div>
+    <label>Critério de abusividade (múltiplo da média)</label>
+    <select id="mult">
+      <option value="1">Qualquer excesso sobre a média (1×)</option>
+      <option value="1.3">30% acima da média (1,3×)</option>
+      <option value="1.5" selected>Uma vez e meia (1,5×) — parâmetro mais usado</option>
+      <option value="2">O dobro (2×)</option>
+      <option value="3">O triplo (3×)</option>
+    </select>
+    <label>Taxa para o recálculo</label>
+    <select id="tx_rec">
+      <option value="media" selected>Taxa média de mercado</option>
+      <option value="custom">Outra taxa (informar)</option>
+    </select>
+    <div id="custom_box" style="display:none">
+      <label>Taxa mensal de recálculo (%)</label>
+      <input id="tx_custom" type="number" step="0.0001" value="1.80">
+    </div>
+    <label>Método do recálculo</label>
+    <select id="met">
+      <option value="price" selected>Tabela Price (juros compostos)</option>
+      <option value="gauss">Método de Gauss (juros simples)</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <h2>3. Encargos a expurgar</h2>
+    <div class="hint" style="margin-top:0">Valores <b>financiados</b> que a tese pretende excluir do principal (deixe 0 os que não serão impugnados).</div>
+    <div class="row2">
+      <div><label>Seguro prestamista</label><input class="tar" id="t_seg" type="number" step="0.01" value="2100"></div>
+      <div><label>Tarifa de avaliação</label><input class="tar" id="t_ava" type="number" step="0.01" value="450"></div>
+      <div><label>Tarifa de registro</label><input class="tar" id="t_reg" type="number" step="0.01" value="350"></div>
+      <div><label>TAC / TEC</label><input class="tar" id="t_tac" type="number" step="0.01" value="0"></div>
+      <div><label>Serviços de terceiros</label><input class="tar" id="t_ter" type="number" step="0.01" value="0"></div>
+      <div><label>Outros (título de capitalização etc.)</label><input class="tar" id="t_out" type="number" step="0.01" value="0"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>4. Repetição do indébito</h2>
+    <label>Forma de restituição</label>
+    <select id="rest">
+      <option value="modulado" selected>Em dobro só p/ pagamentos após 30/03/2021 (EAREsp 676.608)</option>
+      <option value="simples">Simples</option>
+      <option value="dobro">Em dobro integral</option>
+    </select>
+    <div class="row2">
+      <div><label>Correção monetária (% a.m.)</label><input id="cm" type="number" step="0.01" value="0.40"></div>
+      <div><label>Data-base do cálculo</label><input id="dtb" type="date"></div>
+    </div>
+    <div class="hint">Taxa média estimada do índice (INPC/IPCA-E). Para liquidação definitiva use a tabela oficial do tribunal.</div>
+    <div class="row2">
+      <div><label>Juros de mora (% a.m.)</label><input id="jm" type="number" step="0.01" value="1"></div>
+      <div><label>Data da citação</label><input id="dtcit" type="date" placeholder="vazio = sem mora"></div>
+    </div>
+    <div class="hint">Deixe a citação vazia para cálculo da inicial (sem mora).</div>
+  </div>
+</aside>
+
+<!-- ===== RESULTADOS ===== -->
+<main>
+  <div class="kpis" id="kpis"></div>
+  <div class="card alerts" id="alerts"></div>
+
+  <div class="card">
+    <div class="tabs">
+      <button class="on" data-t="p1">Comparativo</button>
+      <button data-t="p2">Planilha parcela a parcela</button>
+      <button data-t="p3">Memória de cálculo</button>
+      <button data-t="p4">Fundamentos</button>
+    </div>
+
+    <div class="pane on" id="p1">
+      <div class="cmp" id="cmp"></div>
+    </div>
+
+    <div class="pane" id="p2">
+      <div class="tablebox"><table id="tbl"></table></div>
+      <div class="btns">
+        <button class="sec" id="copyCsv">Copiar planilha (colar no Excel)</button>
+      </div>
+    </div>
+
+    <div class="pane" id="p3">
+      <textarea id="memo" readonly></textarea>
+      <div class="btns">
+        <button id="copyMemo">Copiar memória de cálculo</button>
+      </div>
+    </div>
+
+    <div class="pane" id="p4">
+      <div style="font-size:13px">
+        <p><b>Juros remuneratórios.</b> REsp 1.061.530/RS (repetitivo, Tema 27): a abusividade exige demonstração cabal de discrepância substancial em relação à taxa média de mercado da modalidade, apurada pelo BACEN, à época da contratação. Súmula 382/STJ: taxa acima de 12% a.a., por si só, não indica abusividade. Súmula 596/STF: instituições financeiras não se sujeitam à Lei de Usura.</p>
+        <p><b>Capitalização.</b> Súmula 539/STJ: permitida em periodicidade inferior à anual nos contratos celebrados a partir de 31/03/2000 (MP 2.170-36), se expressamente pactuada. Súmula 541/STJ: a previsão de taxa anual superior ao duodécuplo da mensal basta para caracterizar a pactuação. Por isso o recálculo por Gauss é tese de exceção — só se sustenta quando a capitalização não estiver pactuada.</p>
+        <p><b>Tarifas.</b> Tema 958/STJ (REsp 1.578.553/SP): é abusiva a cobrança por serviços de terceiros sem especificação; são válidas as tarifas de avaliação do bem e de registro do contrato, ressalvadas a abusividade e a não comprovação do serviço efetivamente prestado. TAC/TEC: indevidas nos contratos posteriores a 30/04/2008 (Tema 618 / REsp 1.251.331/RS). Tema 972/STJ (REsp 1.639.320/SP): o consumidor não pode ser compelido a contratar seguro com a própria instituição ou seguradora por ela indicada (venda casada).</p>
+        <p><b>Repetição em dobro.</b> Art. 42, parágrafo único, CDC. EAREsp 676.608/RS (Corte Especial): a devolução em dobro independe de má-fé, bastando conduta contrária à boa-fé objetiva; efeitos modulados para cobranças realizadas após a publicação do acórdão (30/03/2021).</p>
+        <p><b>Petição inicial.</b> Art. 330, §§ 2º e 3º, CPC: nas ações que tenham por objeto revisão de obrigação decorrente de empréstimo, financiamento ou alienação de bens, o autor deve discriminar as obrigações que pretende controverter e quantificar o valor incontroverso, que continua a ser pago no tempo e modo contratados. Valor da causa: proveito econômico pretendido (art. 292, II, CPC).</p>
+        <p><b>Mora.</b> Tema 28/STJ: o reconhecimento de abusividade nos encargos do período da normalidade (juros remuneratórios e capitalização) descaracteriza a mora.</p>
+        <p class="hint">Confira a vigência e a redação atual dos precedentes antes de protocolar; a orientação dos tribunais estaduais sobre o múltiplo da média varia.</p>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<footer>Ferramenta de apoio para cálculo estimativo. Não substitui perícia contábil nem a tabela oficial de correção do tribunal. Os dados ficam apenas neste navegador.</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const brl = v => (isFinite(v)?v:0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const pct = (v,d=4) => (isFinite(v)?(v*100):0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:d})+'%';
+const num = id => { const v = parseFloat($(id).value); return isFinite(v)?v:0; };
+const fmtD = d => d ? d.toLocaleDateString('pt-BR',{timeZone:'UTC'}) : '—';
+const parseD = s => s ? new Date(s+'T00:00:00Z') : null;
+const addM = (d,m) => { const r=new Date(d); const day=r.getUTCDate(); r.setUTCDate(1); r.setUTCMonth(r.getUTCMonth()+m); const last=new Date(Date.UTC(r.getUTCFullYear(),r.getUTCMonth()+1,0)).getUTCDate(); r.setUTCDate(Math.min(day,last)); return r; };
+const monthsBetween = (a,b) => Math.max(0,(b-a)/(1000*60*60*24*30.4375));
+const MODUL = Date.UTC(2021,2,30);
+
+// taxa implícita (Price) via Newton + bisseção de segurança
+function taxaImplicita(pv,pmt,n){
+  if(pv<=0||pmt<=0||n<=0) return NaN;
+  if(pmt*n<=pv) return 0;
+  const f = i => pmt*(1-Math.pow(1+i,-n))/i - pv;
+  let lo=1e-9, hi=1;
+  while(f(hi)>0 && hi<50) hi*=2;
+  for(let it=0; it<200; it++){ const mid=(lo+hi)/2; if(f(mid)>0) lo=mid; else hi=mid; if(hi-lo<1e-12) break; }
+  return (lo+hi)/2;
+}
+const pricePMT = (pv,i,n) => i===0 ? pv/n : pv*i/(1-Math.pow(1+i,-n));
+const gaussPMT = (pv,i,n) => pv*(1+i*n)/(n*(1+i*(n-1)/2));
+const saldoPrice = (pmt,i,rest) => rest<=0?0:(i===0?pmt*rest:pmt*(1-Math.pow(1+i,-rest))/i);
+const m2a = m => Math.pow(1+m,12)-1;
+const a2m = a => Math.pow(1+a,1/12)-1;
+
+// sincroniza mensal/anual BACEN
+let lock=false;
+$('tmm').addEventListener('input',()=>{ if(lock)return; lock=true; const m=num('tmm')/100; $('tma').value = m? (m2a(m)*100).toFixed(4):''; lock=false; });
+$('tma').addEventListener('input',()=>{ if(lock)return; lock=true; const a=num('tma')/100; $('tmm').value = a? (a2m(a)*100).toFixed(4):''; lock=false; });
+$('tx_rec').addEventListener('change',()=>{ $('custom_box').style.display = $('tx_rec').value==='custom'?'block':'none'; calc(); });
+
+let CSV='';
+
+function calc(){
+  const pv=num('pv'), n=Math.round(num('n')), pmt=num('pmt'), k=Math.min(Math.max(0,Math.round(num('k'))),n);
+  const tmInf=num('tm_inf')/100, taInf=num('ta_inf')/100;
+  const media=num('tmm')/100, mult=parseFloat($('mult').value);
+  const met=$('met').value, rest=$('rest').value;
+  const cm=num('cm')/100, jm=num('jm')/100;
+  const dt1=parseD($('dt1').value), dtc=parseD($('dtc').value);
+  const dtb=parseD($('dtb').value)||new Date(Date.UTC(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()));
+  const dtcit=parseD($('dtcit').value);
+  const tarifas=[...document.querySelectorAll('.tar')].reduce((s,e)=>s+(parseFloat(e.value)||0),0);
+
+  const iReal = taxaImplicita(pv,pmt,n);
+  const iRec = $('tx_rec').value==='custom' ? num('tx_custom')/100 : media;
+  const limite = media*mult;
+  const razao = media>0 ? iReal/media : NaN;
+  const abusiva = media>0 && iReal>limite;
+
+  const pvRev = Math.max(0,pv-tarifas);
+  const pmtRev = met==='gauss' ? gaussPMT(pvRev,iRec,n) : pricePMT(pvRev,iRec,n);
+  const dif = pmt-pmtRev;
+
+  // linha a linha
+  let rows=[], indSimples=0, indCorr=0, indDobroExtra=0, totPagoContr=0, totPagoRev=0;
+  for(let p=1;p<=n;p++){
+    const venc = dt1? addM(dt1,p-1):null;
+    const paga = p<=k;
+    let fator=1, difCorr=0, dobro=false;
+    if(paga){
+      const meses = venc? monthsBetween(venc,dtb):0;
+      fator = Math.pow(1+cm,meses);
+      difCorr = dif*fator;
+      dobro = rest==='dobro' || (rest==='modulado' && venc && venc.getTime()>MODUL);
+      indSimples += dif; indCorr += difCorr; if(dobro) indDobroExtra += difCorr;
+      totPagoContr += pmt; totPagoRev += pmtRev;
+    }
+    rows.push({p,venc,paga,pmt,pmtRev,dif,fator,difCorr,dobro});
+  }
+  const indTotalCorr = indCorr + indDobroExtra;
+  let mora=0, mesesMora=0;
+  if(dtcit && dtcit<dtb){ mesesMora = monthsBetween(dtcit,dtb); mora = indTotalCorr*jm*mesesMora; }
+  const indFinal = indTotalCorr + mora;
+
+  const restantes = n-k;
+  const economiaVinc = dif*restantes;
+  const saldoContr = saldoPrice(pmt,iReal,restantes);
+  const saldoRev = met==='gauss' ? pmtRev*restantes : saldoPrice(pmtRev,iRec,restantes);
+  const proveito = indFinal + economiaVinc;
+  const jurosContr = pmt*n-pv, jurosRev = pmtRev*n-pvRev;
+
+  // KPIs
+  $('kpis').innerHTML = `
+    <div class="kpi"><div class="l">Taxa real implícita</div><div class="v">${pct(iReal,4)} a.m.</div><div class="s">${pct(m2a(iReal),2)} a.a.</div></div>
+    <div class="kpi"><div class="l">Taxa × média BACEN</div><div class="v">${isFinite(razao)?razao.toLocaleString('pt-BR',{maximumFractionDigits:2})+'×':'—'}</div><div class="s"><span class="badge ${abusiva?'b-bad':'b-ok'}">${abusiva?'Acima do critério ('+mult.toLocaleString('pt-BR')+'×)':'Dentro do critério'}</span></div></div>
+    <div class="kpi hl"><div class="l">Parcela revisada (incontroverso)</div><div class="v">${brl(pmtRev)}</div><div class="s">Diferença: ${brl(dif)} / mês</div></div>
+    <div class="kpi"><div class="l">Indébito a restituir</div><div class="v">${brl(indFinal)}</div><div class="s">${k} parcela(s) paga(s)${mora?' · c/ mora':''}</div></div>
+    <div class="kpi"><div class="l">Redução nas vincendas</div><div class="v">${brl(economiaVinc)}</div><div class="s">${restantes} parcela(s) restante(s)</div></div>
+    <div class="kpi hl"><div class="l">Valor da causa (proveito econômico)</div><div class="v">${brl(proveito)}</div><div class="s">Indébito + redução vincendas</div></div>`;
+
+  // Alertas
+  let al=[];
+  if(!(media>0)) al.push(['a-warn','Informe a taxa média BACEN da modalidade no mês da contratação.']);
+  else if(abusiva) al.push(['a-bad',`Taxa real de ${pct(iReal,4)} a.m. supera ${mult.toLocaleString('pt-BR')}× a média (${pct(limite,4)} a.m.) — há base para alegar discrepância substancial (Tema 27/STJ).`]);
+  else al.push(['a-ok',`Taxa real de ${pct(iReal,4)} a.m. não supera ${mult.toLocaleString('pt-BR')}× a média (limite ${pct(limite,4)} a.m.). Pelo critério escolhido, a tese de juros abusivos é fraca; avalie só as tarifas/seguro.`]);
+  if(tmInf>0 && Math.abs(iReal-tmInf)>0.0005) al.push(['a-warn',`A taxa real (${pct(iReal,4)}) diverge da taxa mensal informada no contrato (${pct(tmInf,4)}). Indica encargos embutidos na parcela ou erro de informação — argumento adicional de falta de transparência (art. 6º, III, e art. 52 do CDC).`]);
+  if(met==='gauss'){
+    const cap = (tmInf>0 && taInf>0 && taInf>tmInf*12+1e-9);
+    al.push([cap?'a-bad':'a-warn', cap ? `Taxa anual informada (${pct(taInf,2)}) é superior a 12× a mensal (${pct(tmInf*12,2)}): capitalização considerada pactuada (Súm. 541/STJ). O método de Gauss tende a ser rejeitado.` : 'Método de Gauss só se sustenta se a capitalização mensal NÃO estiver expressamente pactuada (Súm. 539 e 541/STJ). Use como pedido subsidiário.']);
+  }
+  if(tarifas>0) al.push(['a-info',`${brl(tarifas)} em encargos expurgados do principal. Seguro: exige prova de venda casada (Tema 972). Avaliação/registro: só são abusivas se não comprovado o serviço ou se excessivas (Tema 958).`]);
+  if(dtc && dtc.getTime()<=MODUL && rest==='modulado') al.push(['a-info','Contrato anterior a 30/03/2021: apenas as parcelas pagas após essa data entram em dobro no critério modulado.']);
+  if(dif<=0) al.push(['a-warn','A parcela revisada não é menor que a contratada — não há indébito com os parâmetros atuais.']);
+  $('alerts').innerHTML = al.map(a=>`<p class="${a[0]}">${a[1]}</p>`).join('');
+
+  // Comparativo
+  const L=(l,a,b)=>`<div>${l}</div><div class="n">${a}</div><div class="n">${b}</div><div class="n">${typeof a==='string'?'':''}</div>`;
+  const C=(l,a,b,fmt=brl)=>`<div>${l}</div><div class="n">${fmt(a)}</div><div class="n">${fmt(b)}</div><div class="n">${fmt(a-b)}</div>`;
+  $('cmp').innerHTML = `<div class="h">Item</div><div class="h n">Contrato</div><div class="h n">Revisado</div><div class="h n">Diferença</div>
+    ${C('Principal financiado',pv,pvRev)}
+    <div>Taxa mensal</div><div class="n">${pct(iReal)}</div><div class="n">${pct(iRec)}${met==='gauss'?' (simples)':''}</div><div class="n">${pct(iReal-iRec)}</div>
+    <div>Taxa anual equivalente</div><div class="n">${pct(m2a(iReal),2)}</div><div class="n">${met==='gauss'?pct(iRec*12,2)+' (linear)':pct(m2a(iRec),2)}</div><div class="n"></div>
+    ${C('Valor da parcela',pmt,pmtRev)}
+    ${C('Total das parcelas',pmt*n,pmtRev*n)}
+    ${C('Total de juros',jurosContr,jurosRev)}
+    ${C('Total já pago ('+k+' parc.)',totPagoContr,totPagoRev)}
+    ${C('Saldo devedor atual (valor presente)',saldoContr,saldoRev)}
+    ${C('Restante a pagar (nominal)',pmt*restantes,pmtRev*restantes)}
+    <div style="grid-column:1/-1;padding-top:14px;font-weight:600;color:var(--gold);font-size:12px;text-transform:uppercase;letter-spacing:.6px">Composição do indébito</div>
+    <div>Diferenças pagas (nominal)</div><div></div><div></div><div class="n">${brl(indSimples)}</div>
+    <div>Corrigidas até ${fmtD(dtb)} (${(cm*100).toLocaleString('pt-BR')}% a.m.)</div><div></div><div></div><div class="n">${brl(indCorr)}</div>
+    <div>Acréscimo pela dobra (art. 42 CDC)</div><div></div><div></div><div class="n">${brl(indDobroExtra)}</div>
+    <div>Juros de mora ${dtcit?'('+mesesMora.toFixed(1).replace('.',',')+' meses)':'(sem citação)'}</div><div></div><div></div><div class="n">${brl(mora)}</div>
+    <div><b>Total a restituir</b></div><div></div><div></div><div class="n"><b>${brl(indFinal)}</b></div>`;
+
+  // Tabela
+  let h=`<thead><tr><th>Nº</th><th>Vencimento</th><th>Situação</th><th>Parcela contrato</th><th>Parcela revisada</th><th>Diferença</th><th>Fator corr.</th><th>Dif. corrigida</th><th>Dobra</th></tr></thead><tbody>`;
+  CSV = ['Nº','Vencimento','Situação','Parcela contrato','Parcela revisada','Diferença','Fator correção','Diferença corrigida','Em dobro'].join('\t')+'\n';
+  const n2=v=>v.toFixed(2).replace('.',',');
+  rows.forEach(r=>{
+    h+=`<tr class="${r.paga?'paid':''} ${r.dobro?'dobro':''}"><td>${r.p}</td><td>${fmtD(r.venc)}</td><td>${r.paga?'Paga':'Vincenda'}</td><td>${brl(r.pmt)}</td><td>${brl(r.pmtRev)}</td><td>${brl(r.dif)}</td><td>${r.paga?r.fator.toFixed(6).replace('.',','):'—'}</td><td>${r.paga?brl(r.difCorr):'—'}</td><td>${r.paga?(r.dobro?'Sim':'Não'):'—'}</td></tr>`;
+    CSV+=[r.p,fmtD(r.venc),r.paga?'Paga':'Vincenda',n2(r.pmt),n2(r.pmtRev),n2(r.dif),r.paga?r.fator.toFixed(6).replace('.',','):'',r.paga?n2(r.difCorr):'',r.paga?(r.dobro?'Sim':'Não'):''].join('\t')+'\n';
+  });
+  h+=`</tbody><tfoot><tr><th></th><th></th><th>Totais</th><th>${brl(pmt*n)}</th><th>${brl(pmtRev*n)}</th><th>${brl(dif*n)}</th><th></th><th>${brl(indCorr)}</th><th>+${brl(indDobroExtra)}</th></tr></tfoot>`;
+  $('tbl').innerHTML=h;
+
+  // Memória
+  const tarList=[['Seguro prestamista','t_seg'],['Tarifa de avaliação','t_ava'],['Tarifa de registro','t_reg'],['TAC/TEC','t_tac'],['Serviços de terceiros','t_ter'],['Outros','t_out']].filter(t=>num(t[1])>0).map(t=>`   - ${t[0]}: ${brl(num(t[1]))}`).join('\n');
+  $('memo').value =
+`MEMÓRIA DE CÁLCULO — REVISÃO CONTRATUAL
+Data-base: ${fmtD(dtb)}
+
+1. DADOS DO CONTRATO
+   Data da contratação: ${fmtD(dtc)}
+   Valor financiado: ${brl(pv)}
+   Prazo: ${n} parcelas mensais de ${brl(pmt)}, 1º vencimento em ${fmtD(dt1)}
+   Taxa informada no contrato: ${tmInf?pct(tmInf)+' a.m.':'não informada'}${taInf?' / '+pct(taInf,2)+' a.a.':''}
+   Parcelas pagas até a data-base: ${k}
+
+2. TAXA EFETIVAMENTE PRATICADA
+   Taxa implícita extraída do fluxo (PV = PMT × [1 − (1+i)^−n] / i):
+   i = ${pct(iReal,4)} a.m. = ${pct(m2a(iReal),2)} a.a.
+
+3. PARÂMETRO DE MERCADO
+   Taxa média BACEN (modalidade/mês da contratação): ${pct(media,4)} a.m. = ${pct(m2a(media),2)} a.a.
+   Relação taxa praticada / média: ${isFinite(razao)?razao.toLocaleString('pt-BR',{maximumFractionDigits:2}):'—'}×
+   Critério adotado: ${mult.toLocaleString('pt-BR')}× a média (limite ${pct(limite,4)} a.m.) → ${abusiva?'ABUSIVA':'dentro do limite'}
+
+4. ENCARGOS EXPURGADOS DO PRINCIPAL
+${tarList||'   - nenhum'}
+   Total expurgado: ${brl(tarifas)}
+   Principal revisado: ${brl(pvRev)}
+
+5. RECÁLCULO
+   Método: ${met==='gauss'?'Gauss (juros simples) — PMT = PV(1+in) / [n(1 + i(n−1)/2)]':'Tabela Price — PMT = PV × i / [1 − (1+i)^−n]'}
+   Taxa aplicada: ${pct(iRec,4)} a.m.
+   Parcela revisada: ${brl(pmtRev)}
+   Diferença por parcela: ${brl(dif)}
+
+6. VALOR INCONTROVERSO (art. 330, §§ 2º e 3º, CPC)
+   Valor incontroverso da parcela: ${brl(pmtRev)}
+   Valor controvertido por parcela: ${brl(dif)}
+   Saldo devedor revisado (valor presente, ${restantes} parcelas): ${brl(saldoRev)}
+
+7. REPETIÇÃO DO INDÉBITO
+   Diferenças pagas (nominal): ${brl(indSimples)}
+   Correção monetária estimada (${(cm*100).toLocaleString('pt-BR')}% a.m., de cada pagamento até a data-base): ${brl(indCorr)}
+   Critério de devolução: ${rest==='simples'?'simples':rest==='dobro'?'em dobro integral (art. 42, p.ú., CDC)':'em dobro para pagamentos após 30/03/2021 (EAREsp 676.608/RS), simples antes'}
+   Acréscimo pela dobra: ${brl(indDobroExtra)}
+   Juros de mora: ${dtcit?(jm*100).toLocaleString('pt-BR')+'% a.m. desde '+fmtD(dtcit)+' = '+brl(mora):'não incidentes (cálculo anterior à citação)'}
+   TOTAL A RESTITUIR: ${brl(indFinal)}
+
+8. PROVEITO ECONÔMICO / VALOR DA CAUSA (art. 292, II, CPC)
+   Indébito: ${brl(indFinal)}
+   Redução das ${restantes} parcelas vincendas: ${brl(economiaVinc)}
+   TOTAL: ${brl(proveito)}
+
+Observação: correção monetária estimada por taxa média mensal; na liquidação, aplicar a tabela oficial do Tribunal.`;
+
+  try{ const s={}; document.querySelectorAll('input,select').forEach(e=>s[e.id]=e.value); localStorage.setItem('revisional_v1',JSON.stringify(s)); }catch(e){}
+}
+
+// tabs
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); $(b.dataset.t).classList.add('on');
+}));
+
+function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('on'); setTimeout(()=>el.classList.remove('on'),1800); }
+async function copy(txt,msg){
+  try{ await navigator.clipboard.writeText(txt); toast(msg); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); toast(msg);}catch(_){toast('Selecione e copie manualmente');} ta.remove(); }
+}
+$('copyMemo').addEventListener('click',()=>copy($('memo').value,'Memória copiada'));
+$('copyCsv').addEventListener('click',()=>copy(CSV,'Planilha copiada — cole no Excel'));
+
+// restaurar
+try{ const s=JSON.parse(localStorage.getItem('revisional_v1')||'null'); if(s) Object.entries(s).forEach(([k,v])=>{ if($(k)) $(k).value=v; }); }catch(e){}
+if(!$('dtb').value){ const d=new Date(); $('dtb').value=d.toISOString().slice(0,10); }
+$('custom_box').style.display = $('tx_rec').value==='custom'?'block':'none';
+if(!$('tma').value && num('tmm')) $('tma').value=(m2a(num('tmm')/100)*100).toFixed(4);
+
+document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',calc));
+document.querySelectorAll('select').forEach(e=>e.addEventListener('change',calc));
+calc();
+</script>
+</body>
+</html>
